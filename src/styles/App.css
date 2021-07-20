@@ -17,6 +17,10 @@ body {
 	margin: 10px;
 }
 
+.set-clock-buttons {
+	display: flex;
+}
+
 .controller-grid {
 	display: grid;
 	grid-template-columns: 0.5fr 1fr 1fr;

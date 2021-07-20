@@ -8,9 +8,10 @@ const { BrowserWindow, dialog, Menu } = remote;
 const shell = window.require("electron").shell;
 
 export default function Home(props) {
-	const [hour, setHour] = useState("00");
-	const [seconds, setSeconds] = useState("00");
-	const [minutes, setMinutes] = useState("00");
+	const [timerTime, setTimerTime] = useState(0);
+	let seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
+	let minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
+	let hours = ("0" + Math.floor((timerTime / 3600000) % 60)).slice(-2);
 	const [font, setFont] = useState("digital");
 	const [fontColor, setFontColor] = useState("white");
 	const [backgroundColor, setBackgroundColor] = useState("black");
@@ -41,14 +42,18 @@ export default function Home(props) {
 		return () => ipcRenderer.removeListener("close-clock", listener);
 	}, []);
 
+	useEffect(() => {
+		seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
+		minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
+		hours = ("0" + Math.floor((timerTime / 3600000) % 60)).slice(-2);
+	}, [timerTime]);
+
 	const handleClockWindow = () => {
 		ipcRenderer.send("open-clock");
 
 		setTimeout(() => {
 			ipcRenderer.send("time-send", {
-				hour,
-				seconds,
-				minutes,
+				timerTime,
 				fontColor,
 				backgroundColor,
 				font,
@@ -56,13 +61,19 @@ export default function Home(props) {
 		}, 1000);
 	};
 
-	const valueToSet = (target, lengthToCheck) => {
-		if (target == "10") {
-			return "10";
-		} else if (lengthToCheck.length === 2 && lengthToCheck[0] === "0") {
-			return "0" + target;
-		} else {
-			return target;
+	const adjustTimer = (input) => {
+		if (input === "incHours" && timerTime + 3600000 < 216000000) {
+			setTimerTime(timerTime + 3600000);
+		} else if (input === "decHours" && timerTime - 3600000 >= 0) {
+			setTimerTime(timerTime - 3600000);
+		} else if (input === "incMinutes" && timerTime + 60000 < 216000000) {
+			setTimerTime(timerTime + 60000);
+		} else if (input === "decMinutes" && timerTime - 60000 >= 0) {
+			setTimerTime(timerTime - 60000);
+		} else if (input === "incSeconds" && timerTime + 1000 < 216000000) {
+			setTimerTime(timerTime + 1000);
+		} else if (input === "decSeconds" && timerTime - 1000 >= 0) {
+			setTimerTime(timerTime - 1000);
 		}
 	};
 
@@ -70,41 +81,70 @@ export default function Home(props) {
 		<div className="App">
 			<div className="controller-grid">
 				<div className="grid-time-wrapper">
-					<div>
-						<input
-							type="number"
-							min="0"
-							name="hour"
-							value={hour}
-							onChange={(e) => {
-								setHour(valueToSet(e.target.value, hour));
-							}}
-						/>
-						<label htmlFor="hour">Hours</label>
+					<div>Hours : Minutes : Seconds</div>
+					<div className="set-clock-buttons">
+						<div>
+							<button
+								name="hour-up"
+								onClick={(e) => {
+									adjustTimer("incHours");
+								}}
+							>
+								&#8679;
+							</button>
+						</div>
+						<div>
+							<button
+								name="minutes-up"
+								onClick={(e) => {
+									adjustTimer("incMinutes");
+								}}
+							>
+								&#8679;
+							</button>
+						</div>
+						<div>
+							<button
+								name="seconds-up"
+								onClick={(e) => adjustTimer("incSeconds")}
+							>
+								&#8679;
+							</button>
+						</div>
 					</div>
-					<div>
-						<input
-							type="number"
-							min="0"
-							max="60"
-							value={minutes}
-							name="minutes"
-							onChange={(e) => {
-								setMinutes(valueToSet(e.target.value, minutes));
-							}}
-						/>
-						<label htmlFor="minutes">Minutes</label>
+					<div className="countdown-labels">
+						{hours} : {minutes} : {seconds}
 					</div>
-					<div>
-						<input
-							type="number"
-							min="0"
-							max="60"
-							value={seconds}
-							name="seconds"
-							onChange={(e) => setSeconds(valueToSet(e.target.value, seconds))}
-						/>
-						<label htmlFor="seconds">Seconds</label>
+
+					<div className="set-clock-buttons">
+						<div>
+							<button
+								name="hour-down"
+								onClick={(e) => {
+									adjustTimer("decHours");
+								}}
+							>
+								&#8681;
+							</button>
+						</div>
+						<div>
+							<button
+								name="minutes-down"
+								onClick={(e) => {
+									adjustTimer("deccMinutes");
+								}}
+							>
+								&#8681;
+							</button>
+						</div>
+						<div>
+							<button
+								name="seconds-down"
+								onClick={(e) => adjustTimer("decSeconds")}
+							>
+								&#8681;
+							</button>
+						</div>
 					</div>
 				</div>
 
@@ -144,9 +184,7 @@ export default function Home(props) {
 					}}
 				>
 					<Clock
-						hour={hour}
-						seconds={seconds}
-						minutes={minutes}
+						timerTime={timerTime}
 						fontColor={fontColor}
 						backgroundColor={backgroundColor}
 						windowHeight="100%"
@@ -160,9 +198,7 @@ export default function Home(props) {
 					<button
 						onClick={() =>
 							ipcRenderer.send("time-send", {
-								hour,
-								seconds,
-								minutes,
+								timerTime,
 								fontColor,
 								backgroundColor,
 								font,
