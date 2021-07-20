@@ -1,0 +1,171 @@
+@font-face {
+	font-family: "Digital";
+	src: local("Digital"), url("../fonts/DS-DIGI.TTF");
+}
+
+@font-face {
+	font-family: digital-7;
+	src: url(../fonts/digital-7.ttf);
+}
+
+body {
+	margin: 0;
+	overflow-x: hidden;
+}
+
+.App {
+	margin: 10px;
+}
+
+.controller-grid {
+	display: grid;
+	grid-template-columns: 0.5fr 1fr 1fr;
+	margin-bottom: 15px;
+}
+
+.grid-time-wrapper {
+	display: flex;
+	justify-content: space-around;
+	flex-direction: column;
+}
+
+.grid-time-wrapper input[type="number"] {
+	width: 40px;
+}
+
+.grid-time-wrapper label {
+	padding-left: 5px;
+	vertical-align: bottom;
+}
+
+.color-picker {
+}
+
+.color-picker label {
+	padding-left: 5px;
+}
+
+.color-picker input[type="text"] {
+	width: 100px;
+}
+
+.color-picker select {
+	width: 50%;
+}
+
+input {
+	border: 1px solid grey;
+	border-radius: 5px;
+	outline: none;
+}
+
+.clock-text {
+	font-family: digital-7;
+	font-weight: 400;
+}
+
+.controller-clock-buttons {
+	display: flex;
+	flex-direction: column;
+	width: 25%;
+	justify-content: space-around;
+	height: 150px;
+}
+
+.controller-clock-buttons button {
+	border: 1px solid transparent;
+	border-radius: 5px;
+	outline: none;
+	padding: 15px;
+	color: white;
+	background-color: black;
+	transition: 0.4s ease-in-out all;
+}
+
+.controller-clock-buttons button:hover {
+	cursor: pointer;
+	background-color: white;
+	color: black;
+	border: 1px solid black;
+}
+
+.controller-clock-buttons button:disabled {
+	cursor: default;
+	background-color: gray;
+	color: lightgray;
+	border: 1px solid transparent;
+}
+
+.control-button-group {
+	position: absolute;
+	bottom: 15px;
+	display: flex;
+	width: 100%;
+	align-items: center;
+	justify-content: center;
+}
+
+.control-button-group div {
+	padding: 15px;
+}
+
+.control-button-group button {
+	border-radius: 5px;
+	outline: none;
+	border: 1px solid transparent;
+	padding: 15px;
+	cursor: pointer;
+	color: white;
+}
+
+.start {
+	width: 150px;
+	background-color: green;
+	color: white;
+	transition: 0.35s ease-in-out all;
+}
+
+.start:hover {
+	background-color: darkgreen;
+}
+
+.start:disabled {
+	background-color: gray;
+	filter: brightness(75%);
+}
+
+.stop {
+	background-color: firebrick;
+	transition: 0.35s ease-in-out all;
+}
+
+.stop:hover {
+	background-color: darkred;
+	transition: 0.35s ease-in-out all;
+}
+
+.stop:disabled {
+	background-color: firebrick;
+	filter: brightness(75%);
+}
+
+.pause {
+	background-color: blue;
+	transition: 0.35s ease-in-out all;
+}
+
+.pause:hover {
+	background-color: steelblue;
+}
+
+.pause:disabled {
+	background-color: lightblue;
+	filter: brightness(75%);
+}
+
+button:disabled {
+	background-color: gray;
+	cursor: default;
+	color: darkgray;
+	border: none;
+}
