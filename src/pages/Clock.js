@@ -6,7 +6,7 @@ const { BrowserWindow, dialog, Menu } = remote;
 
 export default function Clock(props) {
 	const [timerTime, setTimerTime] = useState(props.timerTime || 0);
-	const [timerOn, setTimerOn] = useState(false);
+	const [timerOn, setTimerOn] = useState(props.timerOn || false);
 	const [timerStart, setTimerStart] = useState(0);
 	const [font, setFont] = useState(props.font || "digital-7");
 	const [fontColor, setFontColor] = useState(props.fontColor || "white");
@@ -39,39 +39,36 @@ export default function Clock(props) {
 	}, [props]);
 
 	useEffect(() => {
-		let listener = ipcRenderer.on("timer-on-receive", (e, args) => {
-			setTimerOn(args);
-		});
-
-		return () => ipcRenderer.removeListener("timer-on-receive", listener);
-	}, []);
-
-	useEffect(() => {
 		let listener = ipcRenderer.on("start-timer-receive", (e, args) => {
-			startTimer();
+			setTimerOn(true);
 		});
 
 		return () => {
-			clearInterval(timerInt);
 			ipcRenderer.removeListener("start-timer-receive", listener);
 		};
 	}, []);
 
-	const startTimer = () => {
-		timerOn(true);
-		setTimerTime(timerTime);
-		setTimerStart(timerTime);
+	useEffect(() => {
+		setTimerOn(props.timerOn);
+	}, [props.timerOn]);
 
-		timerInt = setInterval(() => {
-			const newTime = timerTime - 10;
-			if (newTime >= 0) {
-				setTimerTime(newTime);
-			} else {
-				clearInterval(timerInt);
-				setTimerOn(false);
-			}
-		}, 10);
-	};
+	useEffect(() => {
+		if (timerOn) {
+			timerInt = setInterval(() => {
+				const newTime = timerTime - 1000;
+
+				if (newTime >= 0) {
+					setTimerTime(newTime);
+				} else {
+					setTimerOn(false);
+					clearInterval(timerInt);
+					ipcRenderer.send("reset-timer-send", false);
+				}
+			}, 1000);
+		}
+
+		return () => clearInterval(timerInt);
+	});
 
 	return (
 		<div

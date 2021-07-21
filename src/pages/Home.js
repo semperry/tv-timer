@@ -17,7 +17,15 @@ export default function Home(props) {
 	const [backgroundColor, setBackgroundColor] = useState("black");
 	const [fullscreen, setFullscreen] = useState(false);
 	const [isClockOpen, setIsClockOpen] = useState(false);
-	const [currentStatus, setCurrentStatus] = useState("stop");
+	const [timerOn, setTimerOn] = useState(false);
+
+	useEffect(() => {
+		let listener = ipcRenderer.on("reset-timer-receive", (e, args) => {
+			setTimerOn(args);
+		});
+
+		return () => ipcRenderer.removeListener("reset-timer-receive", listener);
+	}, []);
 
 	useEffect(() => {
 		const keyEscape = window.addEventListener(
@@ -185,6 +193,7 @@ export default function Home(props) {
 				>
 					<Clock
 						timerTime={timerTime}
+						timerOn={timerOn}
 						fontColor={fontColor}
 						backgroundColor={backgroundColor}
 						windowHeight="100%"
@@ -234,8 +243,8 @@ export default function Home(props) {
 				<div>
 					<button
 						className="pause"
-						disabled={currentStatus === "pause" || currentStatus === "stop"}
-						onClick={() => setCurrentStatus("pause")}
+						disabled={!timerOn}
+						onClick={() => setTimerOn(false)}
 					>
 						Pause
 					</button>
@@ -243,8 +252,11 @@ export default function Home(props) {
 				<div>
 					<button
 						className="start"
-						disabled={currentStatus === "start"}
-						onClick={() => setCurrentStatus("start")}
+						disabled={!isClockOpen || timerOn}
+						onClick={() => {
+							setTimerOn(true);
+							ipcRenderer.send("start-timer-send");
+						}}
 					>
 						Start
 					</button>
@@ -252,8 +264,8 @@ export default function Home(props) {
 				<div>
 					<button
 						className="stop"
-						disabled={currentStatus === "stop"}
-						onClick={() => setCurrentStatus("stop")}
+						disabled={!timerOn}
+						onClick={() => setTimerOn(false)}
 					>
 						Stop
 					</button>

@@ -17,6 +17,10 @@ function createWindow() {
 
 	mainWindow.loadURL("http://localhost:3000");
 	mainWindow.webContents.openDevTools();
+
+	ipcMain.on("reset-timer-send", (e, args) => {
+		mainWindow.webContents.send("reset-timer-receive", args);
+	});
 }
 
 function createClock() {
@@ -40,6 +44,10 @@ function createClock() {
 	ipcMain.on("fullscreen-send", (e, args) => {
 		clockWindow.webContents.send("fullscreen-receive", args);
 		clockWindow.fullScreen = args;
+	});
+
+	ipcMain.on("start-timer-send", (e, args) => {
+		clockWindow.webContents.send("start-timer-receive", args);
 	});
 
 	clockWindow.on("close", (e) => {
