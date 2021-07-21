@@ -8,7 +8,7 @@ export default function Clock(props) {
 	const [timerTime, setTimerTime] = useState(props.timerTime || 0);
 	const [timerOn, setTimerOn] = useState(props.timerOn || false);
 	const [timerStart, setTimerStart] = useState(0);
-	const [font, setFont] = useState(props.font || "digital-7");
+	const [font, setFont] = useState(props.font || "1");
 	const [fontColor, setFontColor] = useState(props.fontColor || "white");
 	const [backgroundColor, setBackgroundColor] = useState(
 		props.backgroundColor || "black"
@@ -20,10 +20,10 @@ export default function Clock(props) {
 
 	useEffect(() => {
 		let listener = ipcRenderer.on("time-receive", (e, arg) => {
-			setTimerTime(arg.timerTime);
-			setFont(arg.font);
-			setFontColor(arg.fontColor);
-			setBackgroundColor(arg.backgroundColor);
+			setTimerTime(arg.timerTime || timerTime);
+			setFont(arg.font || font);
+			setFontColor(arg.fontColor || fontColor);
+			setBackgroundColor(arg.backgroundColor || backgroundColor);
 		});
 
 		return () => ipcRenderer.removeListener("time-receive", listener);
@@ -32,7 +32,7 @@ export default function Clock(props) {
 	useEffect(() => {
 		if (props) {
 			setTimerTime(props.timerTime || 0);
-			setFont(props.font || "digital");
+			setFont(props.font || "1");
 			setFontColor(props.fontColor || "white");
 			setBackgroundColor(props.backgroundColor || "black");
 		}
@@ -40,7 +40,7 @@ export default function Clock(props) {
 
 	useEffect(() => {
 		let listener = ipcRenderer.on("start-timer-receive", (e, args) => {
-			setTimerOn(true);
+			setTimerOn(args);
 		});
 
 		return () => {
@@ -72,6 +72,7 @@ export default function Clock(props) {
 
 	return (
 		<div
+			className="clock-wrapper"
 			style={{
 				color: fontColor,
 				backgroundColor,
@@ -79,13 +80,13 @@ export default function Clock(props) {
 				display: "flex",
 				justifyContent: "center",
 				alignItems: "center",
+				overflow: "hidden",
 			}}
 		>
 			<p
 				className="clock-text"
 				style={{
-					fontSize: "50px",
-					fontFamily: font,
+					fontSize: `${25 * font}px`,
 				}}
 			>
 				{hours} : {minutes} : {seconds}

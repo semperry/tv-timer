@@ -17,13 +17,9 @@ body {
 	margin: 10px;
 }
 
-.set-clock-buttons {
-	display: flex;
-}
-
 .controller-grid {
 	display: grid;
-	grid-template-columns: 0.5fr 1fr 1fr;
+	grid-template-columns: 0.8fr 1fr 1fr;
 	margin-bottom: 15px;
 }
 
@@ -31,6 +27,41 @@ body {
 	display: flex;
 	justify-content: space-around;
 	flex-direction: column;
+}
+
+.set-clock-buttons {
+	display: flex;
+	width: 90%;
+}
+
+.set-clock-buttons button {
+	outline: none;
+	border: 1px solid transparent;
+	border-radius: 5px;
+	background-color: black;
+	color: white;
+	cursor: pointer;
+}
+
+.set-clock-buttons button:hover {
+	color: black;
+	background-color: white;
+	border: 1px solid black;
+}
+
+.set-clock-buttons div {
+	padding-left: 25px;
+}
+
+.countdown-labels {
+	/* width: 50%; */
+	font-size: 25px;
+	text-align: center;
+	position: relative;
+	right: 30px;
+}
+
+.grid-time-wrapper {
 }
 
 .grid-time-wrapper input[type="number"] {
@@ -43,10 +74,15 @@ body {
 }
 
 .color-picker {
+	align-self: center;
 }
 
 .color-picker label {
 	padding-left: 5px;
+}
+
+.color-picker div {
+	margin-bottom: 25px;
 }
 
 .color-picker input[type="text"] {

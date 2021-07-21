@@ -12,7 +12,7 @@ export default function Home(props) {
 	let seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
 	let minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
 	let hours = ("0" + Math.floor((timerTime / 3600000) % 60)).slice(-2);
-	const [font, setFont] = useState("digital");
+	const [font, setFont] = useState("1");
 	const [fontColor, setFontColor] = useState("white");
 	const [backgroundColor, setBackgroundColor] = useState("black");
 	const [fullscreen, setFullscreen] = useState(false);
@@ -157,10 +157,30 @@ export default function Home(props) {
 				</div>
 
 				<div className="grid-time-wrapper color-picker">
-					<select>
+					{/* <select>
 						<option>Select a Font</option>
 						<option>Digital</option>
-					</select>
+					</select> */}
+
+					<div>
+						<input
+							type="number"
+							name="font-size"
+							placeholder="Enter Font Size"
+							value={font}
+							onChange={(e) => {
+								setFont(e.target.value);
+								if (isClockOpen)
+									ipcRenderer.send("time-send", {
+										font: e.target.value,
+										timerTime,
+										fontColor,
+										backgroundColor,
+									});
+							}}
+						/>
+						<label htmlFor="font-size">Font Multiplier (x25px)</label>
+					</div>
 
 					<div>
 						<input
@@ -195,6 +215,7 @@ export default function Home(props) {
 						timerTime={timerTime}
 						timerOn={timerOn}
 						fontColor={fontColor}
+						font="1.5"
 						backgroundColor={backgroundColor}
 						windowHeight="100%"
 					/>
@@ -255,7 +276,7 @@ export default function Home(props) {
 						disabled={!isClockOpen || timerOn}
 						onClick={() => {
 							setTimerOn(true);
-							ipcRenderer.send("start-timer-send");
+							ipcRenderer.send("start-timer-send", true);
 						}}
 					>
 						Start
@@ -265,7 +286,12 @@ export default function Home(props) {
 					<button
 						className="stop"
 						disabled={!timerOn}
-						onClick={() => setTimerOn(false)}
+						onClick={() => {
+							setTimerTime(0);
+							setTimerOn(false);
+							ipcRenderer.send("start-timer-send", false);
+							ipcRenderer.send("time-send", { timerTime: 0 });
+						}}
 					>
 						Stop
 					</button>
