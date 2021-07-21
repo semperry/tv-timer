@@ -50,6 +50,14 @@ function createClock() {
 		clockWindow.webContents.send("start-timer-receive", args);
 	});
 
+	ipcMain.on("display-options-send", (e, args) => {
+		clockWindow.webContents.send("display-options-receive", args);
+	});
+
+	ipcMain.on("coordinates-send", (e, args) => {
+		clockWindow.webContents.send("coordinates-receive", args);
+	});
+
 	clockWindow.on("close", (e) => {
 		mainWindow.webContents.send("close-clock");
 	});
@@ -58,7 +66,13 @@ function createClock() {
 app.whenReady().then(createWindow);
 
 ipcMain.on("open-clock", (e, arg) => {
-	createClock();
+	if (BrowserWindow.getAllWindows().length < 2) createClock();
+	else if (clockWindow) clockWindow.show();
+});
+
+ipcMain.on("close-clock", (e, arg) => {
+	clockWindow.hide();
+	mainWindow.webContents.send("close-clock");
 });
 
 app.on("window-all-closed", () => {

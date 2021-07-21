@@ -1,3 +1,16 @@
+// TODO:
+// X Y coordinate slider
+// Hide particular fields (hh mm ss)
+// Button Icons
+// Favicon
+// Responsive controller style
+// Font Loader / installer
+// Time Up animations and text
+// Stop button should display warning popup before stopping
+// Product activation window
+// Menu
+// Theme
+// Warnings
 import { useEffect, useState } from "react";
 
 import Clock from "./Clock";
@@ -9,22 +22,30 @@ const shell = window.require("electron").shell;
 
 export default function Home(props) {
 	const [timerTime, setTimerTime] = useState(0);
-	let seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
-	let minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
-	let hours = ("0" + Math.floor((timerTime / 3600000) % 60)).slice(-2);
 	const [font, setFont] = useState("1");
 	const [fontColor, setFontColor] = useState("white");
 	const [backgroundColor, setBackgroundColor] = useState("black");
 	const [fullscreen, setFullscreen] = useState(false);
 	const [isClockOpen, setIsClockOpen] = useState(false);
 	const [timerOn, setTimerOn] = useState(false);
+	const [infoBox, setInfoBox] = useState(false);
+	const [showHours, setShowHours] = useState(true);
+	const [showMinutes, setShowMinutes] = useState(true);
+	const [showSeconds, setShowSeconds] = useState(true);
+	const [x, setX] = useState(window.innerWidth / 2);
+	const [y, setY] = useState(window.innerHeight / 2);
+
+	let seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
+	let minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
+	let hours = ("0" + Math.floor((timerTime / 3600000) % 60)).slice(-2);
+	let timerInt;
 
 	useEffect(() => {
-		let listener = ipcRenderer.on("reset-timer-receive", (e, args) => {
+		ipcRenderer.on("reset-timer-receive", function (e, args) {
 			setTimerOn(args);
 		});
 
-		return () => ipcRenderer.removeListener("reset-timer-receive", listener);
+		// return () => ipcRenderer.removeListener("reset-timer-receive", listener);
 	}, []);
 
 	useEffect(() => {
@@ -43,18 +64,46 @@ export default function Home(props) {
 	}, []);
 
 	useEffect(() => {
-		let listener = ipcRenderer.on("close-clock", (e, arg) => {
+		ipcRenderer.on("close-clock", function (e, arg) {
 			setIsClockOpen(false);
 		});
 
-		return () => ipcRenderer.removeListener("close-clock", listener);
+		// return () => ipcRenderer.removeListener("close-clock", listener);
 	}, []);
 
 	useEffect(() => {
-		seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
-		minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
-		hours = ("0" + Math.floor((timerTime / 3600000) % 60)).slice(-2);
+		if (isClockOpen)
+			ipcRenderer.send("time-send", {
+				font,
+				timerTime,
+				fontColor,
+				backgroundColor,
+				showSeconds,
+				showMinutes,
+				showHours,
+			});
 	}, [timerTime]);
+
+	useEffect(() => {
+		setTimerOn(props.timerOn);
+	}, [props.timerOn]);
+
+	useEffect(() => {
+		if (timerOn) {
+			timerInt = setInterval(() => {
+				const newTime = timerTime - 1000;
+
+				if (newTime >= 0) {
+					setTimerTime(newTime);
+				} else {
+					setTimerOn(false);
+					clearInterval(timerInt);
+				}
+			}, 1000);
+		}
+
+		return () => clearInterval(timerInt);
+	});
 
 	const handleClockWindow = () => {
 		ipcRenderer.send("open-clock");
@@ -65,6 +114,9 @@ export default function Home(props) {
 				fontColor,
 				backgroundColor,
 				font,
+				showSeconds,
+				showMinutes,
+				showHours,
 			});
 		}, 1000);
 	};
@@ -83,6 +135,17 @@ export default function Home(props) {
 		} else if (input === "decSeconds" && timerTime - 1000 >= 0) {
 			setTimerTime(timerTime - 1000);
 		}
+
+		if (isClockOpen)
+			ipcRenderer.send("time-send", {
+				font,
+				timerTime,
+				fontColor,
+				backgroundColor,
+				showSeconds,
+				showMinutes,
+				showHours,
+			});
 	};
 
 	return (
@@ -93,6 +156,7 @@ export default function Home(props) {
 					<div className="set-clock-buttons">
 						<div>
 							<button
+								disabled={timerOn}
 								name="hour-up"
 								onClick={(e) => {
 									adjustTimer("incHours");
@@ -103,6 +167,7 @@ export default function Home(props) {
 						</div>
 						<div>
 							<button
+								disabled={timerOn}
 								name="minutes-up"
 								onClick={(e) => {
 									adjustTimer("incMinutes");
@@ -113,6 +178,7 @@ export default function Home(props) {
 						</div>
 						<div>
 							<button
+								disabled={timerOn}
 								name="seconds-up"
 								onClick={(e) => adjustTimer("incSeconds")}
 							>
@@ -127,6 +193,7 @@ export default function Home(props) {
 					<div className="set-clock-buttons">
 						<div>
 							<button
+								disabled={timerOn}
 								name="hour-down"
 								onClick={(e) => {
 									adjustTimer("decHours");
@@ -137,9 +204,10 @@ export default function Home(props) {
 						</div>
 						<div>
 							<button
+								disabled={timerOn}
 								name="minutes-down"
 								onClick={(e) => {
-									adjustTimer("deccMinutes");
+									adjustTimer("decMinutes");
 								}}
 							>
 								&#8681;
@@ -147,6 +215,7 @@ export default function Home(props) {
 						</div>
 						<div>
 							<button
+								disabled={timerOn}
 								name="seconds-down"
 								onClick={(e) => adjustTimer("decSeconds")}
 							>
@@ -154,8 +223,60 @@ export default function Home(props) {
 							</button>
 						</div>
 					</div>
+					<div className="checkbox-wrapper">
+						<div>
+							<input
+								name="hh-box"
+								type="checkbox"
+								defaultChecked={true}
+								value={showHours}
+								onClick={(e) => {
+									ipcRenderer.send("display-options-send", {
+										showHours: !showHours,
+										showMinutes,
+										showSeconds,
+									});
+									setShowHours(!showHours);
+								}}
+							/>
+							<label htmlFor="hh-box">H</label>
+						</div>
+						<div>
+							<input
+								name="mm-box"
+								type="checkbox"
+								defaultChecked={true}
+								value={showMinutes}
+								onClick={(e) => {
+									ipcRenderer.send("display-options-send", {
+										showHours,
+										showMinutes: !showMinutes,
+										showSeconds,
+									});
+									setShowMinutes(!showMinutes);
+								}}
+							/>
+							<label htmlFor="mm-box">M</label>
+						</div>
+						<div>
+							<input
+								name="ss-box"
+								type="checkbox"
+								defaultChecked={true}
+								value={showSeconds}
+								onClick={(e) => {
+									ipcRenderer.send("display-options-send", {
+										showHours,
+										showMinutes,
+										showSeconds: !showSeconds,
+									});
+									setShowSeconds(!showSeconds);
+								}}
+							/>
+							<label htmlFor="ss-box">S</label>
+						</div>
+					</div>
 				</div>
-
 				<div className="grid-time-wrapper color-picker">
 					{/* <select>
 						<option>Select a Font</option>
@@ -165,7 +286,9 @@ export default function Home(props) {
 					<div>
 						<input
 							type="number"
+							min="1"
 							name="font-size"
+							disabled={timerOn}
 							placeholder="Enter Font Size"
 							value={font}
 							onChange={(e) => {
@@ -176,6 +299,9 @@ export default function Home(props) {
 										timerTime,
 										fontColor,
 										backgroundColor,
+										showSeconds,
+										showMinutes,
+										showHours,
 									});
 							}}
 						/>
@@ -186,9 +312,22 @@ export default function Home(props) {
 						<input
 							type="text"
 							name="font-color"
+							disabled={timerOn}
 							placeholder="Enter Font Color"
 							value={fontColor}
-							onChange={(e) => setFontColor(e.target.value)}
+							onChange={(e) => {
+								setFontColor(e.target.value);
+								if (isClockOpen)
+									ipcRenderer.send("time-send", {
+										font,
+										timerTime,
+										fontColor: e.target.value,
+										backgroundColor,
+										showSeconds,
+										showMinutes,
+										showHours,
+									});
+							}}
 						/>
 						<label htmlFor="font-color">Font Color</label>
 					</div>
@@ -196,10 +335,23 @@ export default function Home(props) {
 					<div>
 						<input
 							type="text"
+							disabled={timerOn}
 							placeholder="Enter Background Color"
 							name="background-color"
 							value={backgroundColor}
-							onChange={(e) => setBackgroundColor(e.target.value)}
+							onChange={(e) => {
+								setBackgroundColor(e.target.value);
+								if (isClockOpen)
+									ipcRenderer.send("time-send", {
+										font,
+										timerTime,
+										fontColor,
+										backgroundColor: e.target.value,
+										showSeconds,
+										showMinutes,
+										showHours,
+									});
+							}}
 						/>
 						<label htmlFor="background-color">Background Color</label>
 					</div>
@@ -212,34 +364,71 @@ export default function Home(props) {
 					}}
 				>
 					<Clock
+						x={x}
+						y={y}
 						timerTime={timerTime}
 						timerOn={timerOn}
 						fontColor={fontColor}
+						showHours={showHours}
+						showMinutes={showMinutes}
+						showSeconds={showSeconds}
 						font="1.5"
 						backgroundColor={backgroundColor}
 						windowHeight="100%"
 					/>
-					<h1>Preview</h1>
+					<h1>
+						Preview{" "}
+						<span
+							style={{
+								fontWeight: "normal",
+								fontSize: "20px",
+								cursor: "pointer",
+							}}
+							onMouseEnter={(e) => {
+								setInfoBox(true);
+							}}
+							onMouseLeave={(e) => setInfoBox(false)}
+						>
+							[?]
+						</span>
+						<span
+							style={{
+								display: `${infoBox ? "block" : "none"}`,
+								backgroundColor: "lightyellow",
+								position: "relative",
+								top: "15px",
+								right: "25px",
+								border: "1px solid transparent",
+								borderRadius: "5px",
+								fontWeight: "500",
+								fontSize: ".5em",
+							}}
+						>
+							*Preview may not reflect actual countdown. Refer to full size
+							clock for true count.
+							<br />
+							*When exluding a time field (ex: display only mm : ss), values
+							that are selected will still be reflected in the countdown. They
+							are just hidden from view.
+						</span>
+					</h1>
 				</div>
 			</div>
 
 			<div className="controller-clock-buttons">
 				{isClockOpen ? (
 					<button
-						onClick={() =>
-							ipcRenderer.send("time-send", {
-								timerTime,
-								fontColor,
-								backgroundColor,
-								font,
-							})
-						}
+						disabled={timerOn}
+						style={{
+							backgroundColor: "firebrick",
+							border: "1px solid transparent",
+						}}
+						onClick={() => ipcRenderer.send("close-clock")}
 					>
-						Update Timer
+						Close Clock
 					</button>
 				) : (
 					<button
-						disabled={isClockOpen}
 						onClick={() => {
 							setIsClockOpen(true);
 							handleClockWindow();
@@ -260,12 +449,62 @@ export default function Home(props) {
 				</button>
 			</div>
 
+			<div className="coordinate-sliders">
+				<div>
+					<input
+						name="x-slider"
+						type="range"
+						min="-1000"
+						value={x}
+						max="3000"
+						onChange={(e) => {
+							setX(e.target.value);
+							ipcRenderer.send("coordinates-send", { x: e.target.value, y });
+						}}
+					/>
+					<label htmlFor="x-slider">X Axis Adjust</label>
+				</div>
+
+				<div>
+					<input
+						name="y-slider"
+						type="range"
+						min="-1000"
+						value={y}
+						max="3000"
+						onChange={(e) => {
+							setY(e.target.value);
+							ipcRenderer.send("coordinates-send", { y: e.target.value, x });
+						}}
+					/>
+					<label htmlFor="y-slider">Y Axis Adjust</label>
+				</div>
+				<div>
+					<button
+						onClick={() => {
+							setX(window.innerHeight / 2);
+							setY(window.innerWidth / 2);
+							ipcRenderer.send("coordinates-send", {
+								y: "",
+								x: "",
+							});
+						}}
+					>
+						Reset
+					</button>
+				</div>
+			</div>
+
 			<div className="control-button-group">
 				<div>
 					<button
 						className="pause"
 						disabled={!timerOn}
-						onClick={() => setTimerOn(false)}
+						onClick={() => {
+							setTimerOn(false);
+							setTimerTime(timerTime);
+							ipcRenderer.send("start-timer-send", false);
+						}}
 					>
 						Pause
 					</button>
@@ -276,7 +515,13 @@ export default function Home(props) {
 						disabled={!isClockOpen || timerOn}
 						onClick={() => {
 							setTimerOn(true);
-							ipcRenderer.send("start-timer-send", true);
+							ipcRenderer.send("start-timer-send", {
+								startTimer: true,
+								timerTime,
+								showSeconds,
+								showMinutes,
+								showHours,
+							});
 						}}
 					>
 						Start
@@ -285,15 +530,26 @@ export default function Home(props) {
 				<div>
 					<button
 						className="stop"
-						disabled={!timerOn}
+						disabled={timerTime <= 0}
 						onClick={() => {
 							setTimerTime(0);
 							setTimerOn(false);
-							ipcRenderer.send("start-timer-send", false);
-							ipcRenderer.send("time-send", { timerTime: 0 });
+							ipcRenderer.send("start-timer-send", {
+								startTimer: false,
+								timerTime: 0,
+							});
+							ipcRenderer.send("time-send", {
+								timerTime: 0,
+								fontColor,
+								backgroundColor,
+								font,
+								showSeconds,
+								showMinutes,
+								showHours,
+							});
 						}}
 					>
-						Stop
+						{timerTime > 0 && !timerOn ? "Reset" : "Stop"}
 					</button>
 				</div>
 			</div>

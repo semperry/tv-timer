@@ -209,3 +209,13 @@ button:disabled {
 	color: darkgray;
 	border: none;
 }
+
+.checkbox-wrapper {
+	display: flex;
+	width: 50%;
+	margin-left: 20px;
+}
+
+.checkbox-wrapper div {
+	padding: 10px;
+}
