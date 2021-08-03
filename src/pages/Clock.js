@@ -18,15 +18,14 @@ export default function Clock(props) {
 	const [showHours, setShowHours] = useState(props.showHours);
 	const [showMinutes, setShowMinutes] = useState(props.showMinutes);
 	const [showSeconds, setShowSeconds] = useState(props.showSeconds);
-	const [x, setX] = useState("");
-	const [y, setY] = useState("");
-	let seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
-	let minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
-	let hours = ("0" + Math.floor((timerTime / 3600000) % 60)).slice(-2);
 	const [translate, setTranslate] = useState({
 		x: 0,
 		y: 0,
 	});
+
+	let seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
+	let minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
+	let hours = ("0" + Math.floor((timerTime / 3600000) % 60)).slice(-2);
 
 	useEffect(() => {
 		ipcRenderer.on("time-receive", (e, arg) => {
@@ -57,8 +56,10 @@ export default function Clock(props) {
 
 	useEffect(() => {
 		ipcRenderer.on("coordinates-receive", (e, args) => {
-			setX(args.x);
-			setY(args.y);
+			setTranslate({
+				x: args.x,
+				y: args.y,
+			});
 		});
 	}, []);
 

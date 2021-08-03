@@ -32,8 +32,10 @@ export default function Home(props) {
 	const [showHours, setShowHours] = useState(true);
 	const [showMinutes, setShowMinutes] = useState(true);
 	const [showSeconds, setShowSeconds] = useState(true);
-	const [x, setX] = useState(window.innerWidth / 2);
-	const [y, setY] = useState(window.innerHeight / 2);
+	const [translate, setTranslate] = useState({
+		x: 0,
+		y: 0,
+	});
 
 	let seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
 	let minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
@@ -365,8 +367,6 @@ export default function Home(props) {
 				>
 					<Clock
 						makeDraggable={false}
-						x={x}
-						y={y}
 						timerTime={timerTime}
 						timerOn={timerOn}
 						fontColor={fontColor}
@@ -456,11 +456,14 @@ export default function Home(props) {
 						name="x-slider"
 						type="range"
 						min="-1000"
-						value={x}
+						value={translate.x}
 						max="3000"
 						onChange={(e) => {
-							setX(e.target.value);
-							ipcRenderer.send("coordinates-send", { x: e.target.value, y });
+							setTranslate({ x: e.target.value, y: translate.y });
+							ipcRenderer.send("coordinates-send", {
+								x: e.target.value,
+								y: translate.y,
+							});
 						}}
 					/>
 					<label htmlFor="x-slider">X Axis Adjust</label>
@@ -471,11 +474,14 @@ export default function Home(props) {
 						name="y-slider"
 						type="range"
 						min="-1000"
-						value={y}
+						value={translate.y}
 						max="3000"
 						onChange={(e) => {
-							setY(e.target.value);
-							ipcRenderer.send("coordinates-send", { y: e.target.value, x });
+							setTranslate({ y: e.target.value, x: translate.x });
+							ipcRenderer.send("coordinates-send", {
+								y: e.target.value,
+								x: translate.x,
+							});
 						}}
 					/>
 					<label htmlFor="y-slider">Y Axis Adjust</label>
@@ -483,11 +489,14 @@ export default function Home(props) {
 				<div>
 					<button
 						onClick={() => {
-							setX(window.innerHeight / 2);
-							setY(window.innerWidth / 2);
+							setTranslate({
+								x: 0,
+								y: 0,
+							});
+
 							ipcRenderer.send("coordinates-send", {
-								y: "",
-								x: "",
+								y: translate.y,
+								x: translate.x,
 							});
 						}}
 					>
