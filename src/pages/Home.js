@@ -364,6 +364,7 @@ export default function Home(props) {
 					}}
 				>
 					<Clock
+						makeDraggable={false}
 						x={x}
 						y={y}
 						timerTime={timerTime}

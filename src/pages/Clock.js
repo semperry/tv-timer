@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import Draggable from "../components/Draggable";
 
 const remote = window.require("@electron/remote");
 const { ipcRenderer } = window.require("electron");
 const { BrowserWindow, dialog, Menu } = remote;
+
+let timerInt;
 
 export default function Clock(props) {
 	const [timerTime, setTimerTime] = useState(props.timerTime || 0);
@@ -20,7 +23,10 @@ export default function Clock(props) {
 	let seconds = ("0" + (Math.floor((timerTime / 1000) % 60) % 60)).slice(-2);
 	let minutes = ("0" + Math.floor((timerTime / 60000) % 60)).slice(-2);
 	let hours = ("0" + Math.floor((timerTime / 3600000) % 60)).slice(-2);
-	let timerInt;
+	const [translate, setTranslate] = useState({
+		x: 0,
+		y: 0,
+	});
 
 	useEffect(() => {
 		ipcRenderer.on("time-receive", (e, arg) => {
@@ -103,6 +109,13 @@ export default function Clock(props) {
 		return () => clearInterval(timerInt);
 	});
 
+	const handleDragMove = (e) => {
+		setTranslate({
+			x: translate.x + e.movementX,
+			y: translate.y + e.movementY,
+		});
+	};
+
 	const formatTimeDisplay = () => {
 		if (showHours && showMinutes && showSeconds)
 			return `${hours} : ${minutes} : ${seconds}`;
@@ -125,26 +138,40 @@ export default function Clock(props) {
 				color: fontColor,
 				backgroundColor,
 				height: `${props.windowHeight || "100vh"}`,
-				display: x || y ? "block" : "flex",
+				display: "flex",
 				justifyContent: "center",
 				alignItems: "center",
 				overflow: "hidden",
 			}}
 		>
-			<p
-				className="clock-text"
-				style={{
-					fontSize: `${25 * font}px`,
-					userSelect: "none",
-					position: "relative",
-					top: x || y ? `${y}px` : null,
-					left: x || y ? `${x}px` : null,
-					alignSelf: x || y ? null : "center",
-					justifySelf: x || y ? null : "center",
-				}}
-			>
-				{formatTimeDisplay()}
-			</p>
+			{props.makeDraggable ? (
+				<Draggable
+					onDragMove={handleDragMove}
+					style={{
+						transform: `translateX(${translate.x}px) translateY(${translate.y}px)`,
+					}}
+				>
+					<p
+						className="clock-text"
+						style={{
+							fontSize: `${25 * font}px`,
+							userSelect: "none",
+						}}
+					>
+						{formatTimeDisplay()}
+					</p>
+				</Draggable>
+			) : (
+				<p
+					className="clock-text"
+					style={{
+						fontSize: `${25 * font}px`,
+						userSelect: "none",
+					}}
+				>
+					{formatTimeDisplay()}
+				</p>
+			)}
 		</div>
 	);
 }
