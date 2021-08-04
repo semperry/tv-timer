@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 export default function Draggable({
-	onPointerDown = () => {},
-	onPointerUp = () => {},
-	onPointerMove = () => {},
+	onPointerDown,
+	onPointerUp,
+	onPointerMove,
 	onDragMove,
 	children,
 	style,
